@@ -10,7 +10,7 @@ const port = 8000
 
 // Connect to MongoDB
 
-const connectionString = `mongodb+srv://krishana:krishana@cluster0.m3dzd.mongodb.net/Cards?retryWrites=true&w=majority`
+const connectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.m3dzd.mongodb.net/Cards?retryWrites=true&w=majority`
 try {
   await mongoose.connect(connectionString)
 } catch (err) {
@@ -35,7 +35,7 @@ app.get('/', (req, res) => {
 })
 
 // Create user
-app.post("/createUser", async (req, res) => {
+app.post("/user", async (req, res) => {
   try {
     // console.log("hello")
     const user = await User.create(req.body)
