@@ -3,8 +3,9 @@ import React, { useState } from "react"
 import { Paper, List, ListItemButton, ListItemText, Stack } from '@mui/material'
 
 import Deck from './Deck'
+import CreateFlashcard from '../Flashcard/CreateFlashcard'
 
-const DeckProvider = ({ decks, createMode }) => {
+const DeckProvider = ({userId ,decks, createMode }) => {
   const [index, setIndex] = useState(0)
 
   return (
@@ -32,7 +33,7 @@ const DeckProvider = ({ decks, createMode }) => {
         })}
       </List>
     </Paper>
-      <Deck deck={decks[0]} createMode={createMode} />
+    <div>{createMode ? <CreateFlashcard userId={userId} deckId={decks[index].deckId}/> : <Deck deck={decks[index]} />}</div>
     </Stack>
   )
 }

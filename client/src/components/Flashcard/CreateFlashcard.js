@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Button, Stack, TextField } from "@mui/material"
 
-const CreateFlashcard = ({ deckId }) => {
+const CreateFlashcard = ({userId ,deckId }) => {
   const [values, setValues] = useState({
     frontImage: "",
     frontText: "",
@@ -82,12 +82,12 @@ const CreateFlashcard = ({ deckId }) => {
       backText
     }
     // console.log(card)
-    fetch(`http://localhost:8000/decks/${deckId}/cards`, {
+    fetch(`http://localhost:7000/decks/${deckId}/cards`, {
       method: "POST",
       headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          user: "621b050c8e3848f24088b84e"
+          user: `${userId}`
       },
       body: JSON.stringify(values)
   }).then(response => {
