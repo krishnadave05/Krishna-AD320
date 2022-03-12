@@ -90,32 +90,3 @@ export const verifyToken = async (req, res, next) => {
   }
 }
 
-export const isAdmin = async (req, res, next) => {
-  const existingUser = await User.findOne({ _id: req.userId ,role: "Admin"})
-
-  if (!existingUser) {
-    res.status(404).send('only admin can access this route')
-  } else {
-    next()
-  }
-}
-
-export const isSuperUser = async (req, res, next) => {
-  const existingUser = await User.findOne({ _id: req.userId ,role: "SuperUser"})
-
-  if (!existingUser) {
-    res.status(404).send('only superuser can access this route')
-  } else {
-    next()
-  }
-}
-
-export const isUser = async (req, res, next) => {
-  const existingUser = await User.findOne({ _id: req.userId ,role: "User"})
-
-  if (!existingUser) {
-    res.status(404).send('only user can access this route')
-  } else {
-    next()
-  }
-}

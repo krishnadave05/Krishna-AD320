@@ -5,11 +5,11 @@ import { User } from '../models/User.js'
 const decksRouter = Router()
 
 const getDecks = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.id) {
+  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
     const { userId, role } = req.user
     console.log(`Other data from the token ${role}`)
     try {
-      const user = await User.findById(req.params.id)
+      const user = await User.findById(req.params.userId)
       if (user) {
         res.send(user.decks)
       } else {
@@ -26,11 +26,20 @@ const getDecks = async (req, res) => {
 }
 
 const createDeck = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.id) {
+  const errors = validationResult(req)
+
+    if(!errors.isEmpty()){
+        return res.status(400).json({
+            error: errors.array()[0].msg,
+            param: errors.array()[0].param
+        })
+    }
+
+  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
     const { userId, role } = req.user
     const newDeck = req.body
     try {
-      const user = await User.findById(req.params.id)
+      const user = await User.findById(req.params.userId)
       user.decks.push({
         name: newDeck.name,
         cards: []
@@ -47,12 +56,21 @@ const createDeck = async (req, res) => {
 }
 
 const createCard = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.id) {
+  const errors = validationResult(req)
+
+    if(!errors.isEmpty()){
+        return res.status(400).json({
+            error: errors.array()[0].msg,
+            param: errors.array()[0].param
+        })
+    }
+
+  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
     const { userId, role } = req.user
     const deckId = req.params.deckId
     const newCard = req.body
     try {
-      const user = await User.findById(req.params.id)
+      const user = await User.findById(req.params.userId)
       const deck = user.decks.id(deckId)
       deck.cards.push(newCard)
       await user.save()
@@ -69,11 +87,11 @@ const createCard = async (req, res) => {
 }
 
 const deleteDeck = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.id) {
+  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
     const { userId, role } = req.user
     const deckId = req.params.deckId
     try {
-      const user = await User.findById(req.params.id)
+      const user = await User.findById(req.params.userId)
       const removedDeck = user.decks.id(deckId).remove()
       console.log(removedDeck)
       user.save()
@@ -88,12 +106,21 @@ const deleteDeck = async (req, res) => {
 }
 
 const updateDeck = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.id) {
+  const errors = validationResult(req)
+
+    if(!errors.isEmpty()){
+        return res.status(400).json({
+            error: errors.array()[0].msg,
+            param: errors.array()[0].param
+        })
+    }
+
+  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
     const { userId, role } = req.user
     const deckId = req.params.deckId
     const newDeck = req.body
     try {
-      const user = await User.findById(req.params.id)
+      const user = await User.findById(req.params.userId)
       const deck = user.decks.id(deckId)
       deck.name = newDeck.name
       await user.save()
@@ -108,13 +135,22 @@ const updateDeck = async (req, res) => {
 }
 
 const updateCard = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.id) {
+  const errors = validationResult(req)
+
+    if(!errors.isEmpty()){
+        return res.status(400).json({
+            error: errors.array()[0].msg,
+            param: errors.array()[0].param
+        })
+    }
+
+  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
     const { userId, role } = req.user
     const deckId = req.params.deckId
     const cardId = req.params.cardId
     const newCard = req.body
     try {
-      const user = await User.findById(req.params.id)
+      const user = await User.findById(req.params.userId)
       const deck = user.decks.id(deckId)
       const card = deck.cards.id(cardId)
       card.frontImage = newCard.frontImage
@@ -133,12 +169,12 @@ const updateCard = async (req, res) => {
 }
 
 const deleteCard = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.id) {
+  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
     const { userId, role } = req.user
     const deckId = req.params.deckId
     const cardId = req.params.cardId
     try {
-      const user = await User.findById(req.params.id)
+      const user = await User.findById(req.params.userId)
       const deck = user.decks.id(deckId)
       const removedCard = deck.cards.id(cardId).remove()
       console.log(removedCard)
@@ -153,17 +189,17 @@ const deleteCard = async (req, res) => {
   }
 }
 
-decksRouter.get('/:id', getDecks)
-decksRouter.post('/:id', body('name').not().isEmpty(), createDeck)
+decksRouter.get('/:userId', getDecks)
+decksRouter.post('/:userId', body('name').not().isEmpty(), createDeck)
 decksRouter.put(
-  '/:id/:deckId',
+  '/:userId/:deckId',
   body('name').not().isEmpty(),
   updateDeck
 )
-decksRouter.delete('/:id/:deckId', deleteDeck)
+decksRouter.delete('/:userId/:deckId', deleteDeck)
 
 decksRouter.post(
-  '/:id/:deckId/cards',
+  '/:userId/:deckId/cards',
   body('frontImage').isURL(),
   body('frontText').not().isEmpty(),
   body('backImage').isURL(),
@@ -171,7 +207,7 @@ decksRouter.post(
   createCard
 )
 decksRouter.put(
-  '/:id/:deckId/:cardId/cards',
+  '/:userId/:deckId/:cardId/cards',
   body('frontImage').isURL(),
   body('frontText').not().isEmpty(),
   body('backImage').isURL(),
@@ -179,6 +215,6 @@ decksRouter.put(
   updateCard
 )
 
-decksRouter.delete('/:id/:deckId/:cardId', deleteCard)
+decksRouter.delete('/:userId/:deckId/:cardId', deleteCard)
 
 export default decksRouter

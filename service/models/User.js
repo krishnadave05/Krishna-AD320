@@ -30,7 +30,11 @@ const UserSchema = new mongoose.Schema({
     required: 'Email address is required',
     validate: [validateEmail, 'Please provide a valid email address'],
   },
-  role: {type: String, default: "User"},
+  role: {
+    type: String, 
+    enum: ["User", "SuperUser", "Admin"],
+    required: true
+  },
   password: { type: String, required: true },
   decks: [DeckSchema],
   active: { type: Boolean, default: true }
