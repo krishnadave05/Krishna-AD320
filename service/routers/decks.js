@@ -1,17 +1,18 @@
-import { Router } from 'express'
+import { request, Router } from 'express'
 import { body } from 'express-validator'
 import { User } from '../models/User.js'
 
 const decksRouter = Router()
 
 const getDecks = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
-    const { userId, role } = req.user
-    console.log(`Other data from the token ${role}`)
+  const { userId, other } = req.user
+  console.log(`Other data from the token ${other}`)
+  const requestor = await User.findById(userId)
+  if (requestor.role === 'admin' || requestor.role === 'superuser') {
     try {
-      const user = await User.findById(req.params.userId)
-      if (user) {
-        res.send(user.decks)
+      console.log(requestor)
+      if (requestor) {
+        res.send(requestor.decks)
       } else {
         res.sendStatus(404)
       }
@@ -20,60 +21,49 @@ const getDecks = async (req, res) => {
       res.sendStatus(500)
     }
   } else {
-    res.status(404).send('you are not authorized to access this route')
+    res.sendStatus(403).send('forbidden')
   }
-  
 }
 
 const createDeck = async (req, res) => {
-  const errors = validationResult(req)
-
-    if(!errors.isEmpty()){
-        return res.status(400).json({
-            error: errors.array()[0].msg,
-            param: errors.array()[0].param
-        })
-    }
-
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
-    const { userId, role } = req.user
-    const newDeck = req.body
+  const userId = req.user.userId
+  const newDeck = req.body
+  const requestor = await User.findById(userId)
+  if (
+    requestor.role === 'admin' ||
+    requestor.role === 'superuser' ||
+    requestor.role === 'user'
+  ) {
     try {
-      const user = await User.findById(req.params.userId)
-      user.decks.push({
+      requestor.decks.push({
         name: newDeck.name,
-        cards: []
+        cards: [],
       })
-      await user.save()
+      await requestor.save()
       res.sendStatus(204)
     } catch (err) {
       console.log(`${createDeck.name}: ${err}`)
       res.sendStatus(500)
     }
   } else {
-    res.status(404).send('you are not authorized to access this route')
+    res.sendStatus(403).send('forbidden')
   }
 }
 
 const createCard = async (req, res) => {
-  const errors = validationResult(req)
-
-    if(!errors.isEmpty()){
-        return res.status(400).json({
-            error: errors.array()[0].msg,
-            param: errors.array()[0].param
-        })
-    }
-
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
-    const { userId, role } = req.user
-    const deckId = req.params.deckId
-    const newCard = req.body
+  const userId = req.user.userId
+  const deckId = req.params.id
+  const newCard = req.body
+  const requestor = await User.findById(userId)
+  if (
+    requestor.role === 'admin' ||
+    requestor.role === 'superuser' ||
+    requestor.role === 'user'
+  ) {
     try {
-      const user = await User.findById(req.params.userId)
-      const deck = user.decks.id(deckId)
+      const deck = requestor.decks.id(deckId)
       deck.cards.push(newCard)
-      await user.save()
+      await requestor.save()
       const newId = deck.cards[deck.cards.length - 1]
       res.status(200).send(newId._id)
     } catch (err) {
@@ -81,17 +71,21 @@ const createCard = async (req, res) => {
       res.sendStatus(500)
     }
   } else {
-    res.status(404).send('you are not authorized to access this route')
+    res.sendStatus(403).send('forbidden')
   }
-  
 }
 
 const deleteDeck = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
-    const { userId, role } = req.user
-    const deckId = req.params.deckId
+  const userId = req.user.userId
+  const deckId = req.params.id
+  const requestor = await User.findById(userId)
+  if (
+    requestor.role === 'admin' ||
+    requestor.role === 'superuser' ||
+    requestor.role === 'user'
+  ) {
     try {
-      const user = await User.findById(req.params.userId)
+      const user = await User.findById(userId)
       const removedDeck = user.decks.id(deckId).remove()
       console.log(removedDeck)
       user.save()
@@ -101,26 +95,22 @@ const deleteDeck = async (req, res) => {
       res.sendStatus(500)
     }
   } else {
-    res.status(404).send('you are not authorized to access this route')
+    res.sendStatus(403).send('forbidden')
   }
 }
 
 const updateDeck = async (req, res) => {
-  const errors = validationResult(req)
-
-    if(!errors.isEmpty()){
-        return res.status(400).json({
-            error: errors.array()[0].msg,
-            param: errors.array()[0].param
-        })
-    }
-
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
-    const { userId, role } = req.user
-    const deckId = req.params.deckId
-    const newDeck = req.body
+  const userId = req.user.userId
+  const deckId = req.params.id
+  const newDeck = req.body
+  const requestor = await User.findById(userId)
+  if (
+    requestor.role === 'admin' ||
+    requestor.role === 'superuser' ||
+    requestor.role === 'user'
+  ) {
     try {
-      const user = await User.findById(req.params.userId)
+      const user = await User.findById(userId)
       const deck = user.decks.id(deckId)
       deck.name = newDeck.name
       await user.save()
@@ -130,76 +120,71 @@ const updateDeck = async (req, res) => {
       res.sendStatus(500)
     }
   } else {
-    res.status(404).send('you are not authorized to access this route')
+    res.sendStatus(403).send('only admin can update a card')
   }
 }
 
 const updateCard = async (req, res) => {
-  const errors = validationResult(req)
-
-    if(!errors.isEmpty()){
-        return res.status(400).json({
-            error: errors.array()[0].msg,
-            param: errors.array()[0].param
-        })
-    }
-
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
-    const { userId, role } = req.user
-    const deckId = req.params.deckId
-    const cardId = req.params.cardId
-    const newCard = req.body
+  const userId = req.user.userId
+  const deckId = req.params.id
+  const cardId = req.params.cardId
+  const newCard = req.body
+  const requestor = await User.findById(userId)
+  if (
+    requestor.role === 'admin' ||
+    requestor.role === 'superuser' ||
+    requestor.role === 'user'
+  ) {
     try {
-      const user = await User.findById(req.params.userId)
+      const user = await User.findById(userId)
       const deck = user.decks.id(deckId)
       const card = deck.cards.id(cardId)
-      card.frontImage = newCard.frontImage
-      card.frontText = newCard.frontText
-      card.backImage = newCard.backImage
-      card.backText = newCard.backText
+      card.front = newCard.front
+      card.back = newCard.back
       await user.save()
       res.sendStatus(204)
     } catch (err) {
-      console.log(`${createCard.name}: ${err}`)
+      console.log(`${updateCard.name}: ${err}`)
       res.sendStatus(500)
     }
   } else {
-    res.status(404).send('you are not authorized to access this route')
+    res.sendStatus(403).send('forbidden')
   }
 }
 
 const deleteCard = async (req, res) => {
-  if(req.user.role == "Admin" || req.user.role == "SuperUser" || req.user.userId == req.params.userId) {
-    const { userId, role } = req.user
-    const deckId = req.params.deckId
-    const cardId = req.params.cardId
+  const userId = req.user.userId
+  const deckId = req.params.id
+  const cardId = req.params.cardId
+  const requestor = await User.findById(userId)
+  if (
+    requestor.role === 'admin' ||
+    requestor.role === 'superuser' ||
+    requestor.role === 'user'
+  ) {
     try {
-      const user = await User.findById(req.params.userId)
+      const user = await User.findById(userId)
       const deck = user.decks.id(deckId)
-      const removedCard = deck.cards.id(cardId).remove()
-      console.log(removedCard)
-      user.save()
+      const card = deck.cards.id(cardId)
+      card.remove()
+      await user.save()
       res.sendStatus(204)
     } catch (err) {
       console.log(`${deleteCard.name}: ${err}`)
       res.sendStatus(500)
     }
   } else {
-    res.status(404).send('you are not authorized to access this route')
+    res.sendStatus(403).send('forbidden')
   }
 }
 
-decksRouter.get('/:userId', getDecks)
-decksRouter.post('/:userId', body('name').not().isEmpty(), createDeck)
-decksRouter.put(
-  '/:userId/:deckId',
-  body('name').not().isEmpty(),
-  updateDeck
-)
-decksRouter.delete('/:userId/:deckId', deleteDeck)
+decksRouter.get('/', getDecks)
+decksRouter.post('/', body('name').not().isEmpty(), createDeck)
+decksRouter.put('/:id', body('name').not().isEmpty(), updateDeck)
+decksRouter.delete('/:id', deleteDeck)
 
 decksRouter.post(
-  '/:userId/:deckId/cards',
+  '/:id/cards',
   body('frontImage').isURL(),
   body('frontText').not().isEmpty(),
   body('backImage').isURL(),
@@ -207,14 +192,13 @@ decksRouter.post(
   createCard
 )
 decksRouter.put(
-  '/:userId/:deckId/:cardId/cards',
+  '/:id/cards/:cardId',
   body('frontImage').isURL(),
   body('frontText').not().isEmpty(),
   body('backImage').isURL(),
   body('backText').not().isEmpty(),
   updateCard
 )
-
-decksRouter.delete('/:userId/:deckId/:cardId', deleteCard)
+decksRouter.delete('/:id/cards/:cardId', deleteCard)
 
 export default decksRouter
