@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import axios from "axios"
 import jwt from "jwt-decode"
 import { useNavigate } from "react-router-dom"
@@ -9,6 +9,18 @@ const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(null)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      const decoded = jwt(token)
+      if (decoded.exp * 1000 < Date.now()) {
+        localStorage.removeItem("token")
+        setAuth(null)
+      }
+      setAuth({ token, user: decoded.user })
+    }
+  }, [])
+
   const login = async (email, password, callback) => {
     console.log("[Login]")
     try {
@@ -18,6 +30,7 @@ const AuthProvider = ({ children }) => {
         { "content-type": "application/json" }
       )
       const decoded = jwt(authResponse.data.token)
+      localStorage.setItem("token", authResponse.data.token)
       setAuth({ token: authResponse.data.token, user: decoded.user })
       callback()
     } catch (err) {
@@ -37,8 +50,6 @@ const AuthProvider = ({ children }) => {
         { email: email, password: password },
         { "content-type": "application/json" }
       )
-      const decoded = jwt(authResponse.data.token)
-      setAuth({ token: localStorage.getItem("token"), user: decoded.user })
       callback()
       navigate("/login")
     } catch (err) {
