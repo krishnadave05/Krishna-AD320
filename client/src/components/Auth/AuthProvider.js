@@ -16,8 +16,9 @@ const AuthProvider = ({ children }) => {
       if (decoded.exp * 1000 < Date.now()) {
         localStorage.removeItem("token")
         setAuth(null)
+      } else {
+        setAuth({ token, user: decoded.user })
       }
-      setAuth({ token, user: decoded.user })
     }
   }, [])
 
@@ -51,7 +52,6 @@ const AuthProvider = ({ children }) => {
         { "content-type": "application/json" }
       )
       callback()
-      navigate("/login")
     } catch (err) {
       console.log(`Register error ${err}`)
       navigate("/login")

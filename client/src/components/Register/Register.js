@@ -1,12 +1,15 @@
 import React from "react"
 import { Button, Box, TextField, Typography } from "@mui/material"
 import { useAuth } from "../Auth/AuthProvider"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 const Register = () => {
   // Assignment: use the useAuth hook here to handle registering a new user
   const { register } = useAuth()
   const navigate = useNavigate()
+  let location = useLocation()
+
+  const source = location.state?.from?.pathname || "/login"
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -16,7 +19,7 @@ const Register = () => {
       password: data.get("password"),
     })
     register(data.get("email"), data.get("password"), () => {
-      navigate("/login")
+      navigate(source, { replace: true })
     })
   }
 
